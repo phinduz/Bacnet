@@ -31,6 +31,7 @@ import com.serotonin.bacnet4j.type.enumerated.ObjectType;
 import com.serotonin.bacnet4j.type.enumerated.PropertyIdentifier;
 import com.serotonin.bacnet4j.type.notificationParameters.NotificationParameters;
 import com.serotonin.bacnet4j.type.primitive.Boolean;
+import com.serotonin.bacnet4j.type.primitive.Enumerated;
 import com.serotonin.bacnet4j.type.primitive.CharacterString;
 import com.serotonin.bacnet4j.type.primitive.ObjectIdentifier;
 import com.serotonin.bacnet4j.type.primitive.Primitive;
@@ -205,19 +206,23 @@ public class BacnetLogic {
 			oidList.add(new ObjectIdentifier(ObjectType.analogValue,4));
 			oidList.add(new ObjectIdentifier(ObjectType.analogValue,3));
 			oidList.add(new ObjectIdentifier(ObjectType.analogInput,3));
+			oidList.add(new ObjectIdentifier(ObjectType.binaryValue,2));
 			
 			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, d, oidList, null);
 			try {
-				Encodable prop =  propVal.get(oidList.get(3), PropertyIdentifier.presentValue);
+				Encodable prop =  propVal.get(oidList.get(4), PropertyIdentifier.presentValue);
 				System.out.println("AC: "+prop.toString());
 //				RequestUtils.sendReadPropertyAllowNull(localDevice, d, 
 //						new ObjectIdentifier(ObjectType.analogValue,3), PropertyIdentifier.presentValue);
 				
-				Real value = new Real(10);
+				Real value = new Real(40);
+//				RequestUtils.setProperty(localDevice, d,
+//						new ObjectIdentifier(ObjectType.binaryValue,2), 
+//						PropertyIdentifier.presentValue, new Enumerated(0));
+
 				RequestUtils.setProperty(localDevice, d,
 						new ObjectIdentifier(ObjectType.analogValue,3), 
-						PropertyIdentifier.presentValue, value);
-				
+						PropertyIdentifier.presentValue, value);				
 				
 				
 			} catch (PropertyValueException e) {
