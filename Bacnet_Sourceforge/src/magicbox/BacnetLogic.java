@@ -56,7 +56,8 @@ public class BacnetLogic {
 	private final LocalDevice localDevice;
 	// remote devices found
 	final List<RemoteDevice> remoteDevices = new ArrayList<RemoteDevice>();
-
+	public RemoteDevice remoteDevice;
+	
 	public BacnetLogic(String broadcastAddress, int port)
 			throws Exception {
 		network = new IpNetwork(broadcastAddress, port);
@@ -72,7 +73,8 @@ public class BacnetLogic {
 			public void iAmReceived(RemoteDevice d) {
 				System.out.println("DiscoveryTest iAmReceived");
 				if (d.getInstanceNumber() == 2098177) {
-					remoteDevices.add(d);
+					//remoteDevices.add(d);
+					remoteDevice = d;
 					synchronized (BacnetLogic.this) {
 						BacnetLogic.this.notifyAll();
 					}
@@ -174,19 +176,18 @@ public class BacnetLogic {
 	@SuppressWarnings("unchecked")
 	private void printDevices() throws BACnetException {
 
-		for (RemoteDevice d : remoteDevices) {
-			System.out.println("\n!!!!!!!!!!!!!!!!!!!!!!\n"+d.getObjects().size()+"\n"+d.toString()+"\n");
-			RequestUtils.getExtendedDeviceInformation(localDevice, d);
+			System.out.println("\n!!!!!!!!!!!!!!!!!!!!!!\n"+remoteDevice.getObjects().size()+"\n"+remoteDevice.toString()+"\n");
+			RequestUtils.getExtendedDeviceInformation(localDevice, remoteDevice);
 
 			List<ObjectIdentifier> oids = ((SequenceOf<ObjectIdentifier>) RequestUtils
-					.sendReadPropertyAllowNull(localDevice, d,
-							d.getObjectIdentifier(),
+					.sendReadPropertyAllowNull(localDevice, remoteDevice,
+							remoteDevice.getObjectIdentifier(),
 							PropertyIdentifier.objectList)).getValues();
 
 			PropertyReferences refs = new PropertyReferences();
 			// add the property references of the "device object" to the list
-			refs.add(d.getObjectIdentifier(), PropertyIdentifier.presentValue);
-			System.out.println(d.getObjectIdentifier()+"\n\n");
+			refs.add(remoteDevice.getObjectIdentifier(), PropertyIdentifier.presentValue);
+			System.out.println(remoteDevice.getObjectIdentifier()+"\n\n");
 
 			// and now from all objects under the device object >> ai0,
 			// ai1,bi0,bi1...
@@ -200,7 +201,7 @@ public class BacnetLogic {
 			// Read values from refs
 			
 			Map<PropertyIdentifier,Encodable> properties = RequestUtils.getProperties(localDevice, 
-					d, null, PropertyIdentifier.presentValue);
+					remoteDevice, null, PropertyIdentifier.presentValue);
 			List<ObjectIdentifier> oidList = new ArrayList();
 			oidList.add(new ObjectIdentifier(ObjectType.analogOutput,6));
 			oidList.add(new ObjectIdentifier(ObjectType.analogValue,4));
@@ -208,20 +209,20 @@ public class BacnetLogic {
 			oidList.add(new ObjectIdentifier(ObjectType.analogInput,3));
 			oidList.add(new ObjectIdentifier(ObjectType.binaryValue,2));
 			
-			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, d, oidList, null);
+			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, remoteDevice, oidList, null);
 			try {
 				Encodable prop =  propVal.get(oidList.get(4), PropertyIdentifier.presentValue);
 				System.out.println("AC: "+prop.toString());
-//				RequestUtils.sendReadPropertyAllowNull(localDevice, d, 
+//				RequestUtils.sendReadPropertyAllowNull(localDevice, remoteDevice, 
 //						new ObjectIdentifier(ObjectType.analogValue,3), PropertyIdentifier.presentValue);
 				
-				Real value = new Real(40);
-//				RequestUtils.setProperty(localDevice, d,
-//						new ObjectIdentifier(ObjectType.binaryValue,2), 
-//						PropertyIdentifier.presentValue, new Enumerated(0));
+				Real value = new Real(30);
+				RequestUtils.setProperty(localDevice, remoteDevice,
+						new ObjectIdentifier(ObjectType.binaryValue,2), 
+						PropertyIdentifier.presentValue, new Enumerated(1));
 
-				RequestUtils.setProperty(localDevice, d,
-						new ObjectIdentifier(ObjectType.analogValue,3), 
+				RequestUtils.setProperty(localDevice, remoteDevice,
+						new ObjectIdentifier(ObjectType.analogValue,4), 
 						PropertyIdentifier.presentValue, value);				
 				
 				
@@ -230,22 +231,34 @@ public class BacnetLogic {
 				e.printStackTrace();
 			}
 			
-			PropertyValues pvs = RequestUtils.readProperties(localDevice, d,
+			PropertyValues pvs = RequestUtils.readProperties(localDevice, remoteDevice,
 					refs, null);
 			System.out.println(String.format("Properties read done in %d ms",
 					System.currentTimeMillis() - start));
 			
 			//Print the read values
-			printObject(d.getObjectIdentifier(), pvs);
+			printObject(remoteDevice.getObjectIdentifier(), pvs);
 			for (ObjectIdentifier oid : oids) {
 				printObject(oid, pvs);
 			}
 
-		}
 
 		System.out.println("Remote devices done...");
 	}
-
+	
+	
+	private void writeDevice(ObjectIdentifier p_oid, int p_value, boolean p_bool) throws BACnetException {
+		if (p_bool == true) {
+			RequestUtils.setProperty(localDevice, remoteDevice, p_oid, 
+					PropertyIdentifier.presentValue, new Enumerated(p_value));
+		}
+		else {
+			RequestUtils.setProperty(localDevice, remoteDevice, p_oid,	
+					PropertyIdentifier.presentValue, new Real(p_value));				
+		}
+		System.out.println("Writing to devices done...");
+	}	
+		
 	private void printObject(ObjectIdentifier oid, PropertyValues pvs) {
 		System.out.println(String.format("\t%s", oid));
 		for (ObjectPropertyReference opr : pvs) {
@@ -276,7 +289,24 @@ public class BacnetLogic {
 		}
 		try {
 			dt.doDiscover();
-			dt.printDevices();
+//			dt.printDevices();
+			
+			
+//			Map<PropertyIdentifier,Encodable> properties = RequestUtils.getProperties(localDevice, 
+//					remoteDevice, null, PropertyIdentifier.presentValue);
+//			List<ObjectIdentifier> oidList = new ArrayList();
+//			oidList.add(new ObjectIdentifier(ObjectType.analogOutput,6));
+//			oidList.add(new ObjectIdentifier(ObjectType.analogValue,4));
+//			oidList.add(new ObjectIdentifier(ObjectType.analogValue,3));
+//			oidList.add(new ObjectIdentifier(ObjectType.analogInput,3));
+//			oidList.add(new ObjectIdentifier(ObjectType.binaryValue,2));
+//			
+//			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, remoteDevice, oidList, null);
+//		
+			
+			
+			
+			dt.writeDevice(new ObjectIdentifier(ObjectType.binaryValue,2),1, true);
 		} finally {
 			dt.localDevice.terminate();
 			System.out.println("Cleanup loopDevice");
