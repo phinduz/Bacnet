@@ -2,6 +2,8 @@ package magicbox;
 
 import java.util.*;
 
+import org.omg.CORBA.FREE_MEM;
+
 import com.serotonin.bacnet4j.LocalDevice;
 import com.serotonin.bacnet4j.RemoteDevice;
 import com.serotonin.bacnet4j.RemoteObject;
@@ -50,8 +52,31 @@ public class BacnetLogic {
 	private final IpNetwork network;
 	private final LocalDevice localDevice;
 	// remote devices found
-	final List<RemoteDevice> remoteDevices = new ArrayList<RemoteDevice>();
 	public RemoteDevice remoteDevice;
+
+	
+	private static ObjectIdentifier d_freigabeAnlagen = new ObjectIdentifier(ObjectType.binaryValue,2);
+
+	private static ObjectIdentifier d_sollwertHeizung= new ObjectIdentifier(ObjectType.analogValue,3);
+	private static ObjectIdentifier d_sollvertKalten = new ObjectIdentifier(ObjectType.analogValue,4);
+	
+	private static ObjectIdentifier d_Stellen_Klappenantriebe = new ObjectIdentifier(ObjectType.analogOutput,6);
+	private static ObjectIdentifier d_M03_VG = new ObjectIdentifier(ObjectType.analogOutput,7);
+	private static ObjectIdentifier d_M05_VG = new ObjectIdentifier(ObjectType.analogOutput,8);
+	private static ObjectIdentifier d_M02_VG = new ObjectIdentifier(ObjectType.analogOutput,9);
+	private static ObjectIdentifier d_M04_VG = new ObjectIdentifier(ObjectType.analogOutput,10);
+	
+	private static ObjectIdentifier d_temperature = new ObjectIdentifier(ObjectType.analogInput,3);
+	
+	private static ObjectIdentifier d_A06_FRG_Durchlauf = new ObjectIdentifier(ObjectType.binaryOutput,8);
+	private static ObjectIdentifier d_A03_FRG_Kalten = new ObjectIdentifier(ObjectType.binaryOutput,9);
+	
+
+	
+
+	
+	
+	
 	
 	public BacnetLogic(String broadcastAddress, int port)
 			throws Exception {
@@ -220,9 +245,29 @@ public class BacnetLogic {
 //			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, remoteDevice, oidList, null);
 //		
 			
+//			dt.writeDevice(d_freigabeAnlagen ,1, true);
+
+			dt.writeDevice(d_freigabeAnlagen ,0, true);
+			dt.writeDevice(d_sollvertKalten ,50, false);
+			dt.writeDevice(d_sollwertHeizung ,10, false);
+			
+
+
+			
+//			
+//			dt.writeDevice(d_A03_FRG_Kalten ,1, true);
+//			dt.writeDevice(d_M05_VG ,100, false);
+//			
+//			dt.writeDevice(d_M04_VG ,50, false);
+//			
+//			
+//			Thread.sleep(10000);
+//			System.out.println("Heating off");
+//			dt.writeDevice(d_A03_FRG_Kalten ,0, true);
 			
 			
-			dt.writeDevice(new ObjectIdentifier(ObjectType.binaryValue,2),1, true);
+			
+			
 		} finally {
 			dt.localDevice.terminate();
 			System.out.println("Cleanup loopDevice");
