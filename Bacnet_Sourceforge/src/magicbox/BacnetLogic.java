@@ -53,7 +53,6 @@ public class BacnetLogic {
 	private final LocalDevice localDevice;
 	// remote devices found
 	public RemoteDevice remoteDevice;
-
 	
 	private static ObjectIdentifier d_freigabeAnlagen = new ObjectIdentifier(ObjectType.binaryValue,2);
 
@@ -72,11 +71,6 @@ public class BacnetLogic {
 	private static ObjectIdentifier d_A03_FRG_Kalten = new ObjectIdentifier(ObjectType.binaryOutput,9);
 	
 
-	
-
-	
-	
-	
 	
 	public BacnetLogic(String broadcastAddress, int port)
 			throws Exception {
@@ -190,7 +184,6 @@ public class BacnetLogic {
 		}
 	}
 
-	
 	private void writeDevice(ObjectIdentifier p_oid, int p_value, boolean p_bool) throws BACnetException {
 		if (p_bool == true) {
 			RequestUtils.setProperty(localDevice, remoteDevice, p_oid, 
@@ -204,11 +197,8 @@ public class BacnetLogic {
 	}	
 	
 	@SuppressWarnings("unchecked")
-	private void readDevice(ObjectIdentifier p_oid) throws BACnetException {
-
-		System.out.println("ACHTUNG!-> "+RequestUtils.getProperty(localDevice, remoteDevice, p_oid, PropertyIdentifier.presentValue));
-		
-		System.out.println("Remote devices done...");
+	private Encodable readDevice(ObjectIdentifier p_oid) throws BACnetException {
+		return RequestUtils.getProperty(localDevice, remoteDevice, p_oid, PropertyIdentifier.presentValue);
 	}
 
 
@@ -230,43 +220,15 @@ public class BacnetLogic {
 		}
 		try {
 			dt.doDiscover();
-			dt.readDevice(new ObjectIdentifier(ObjectType.analogValue,4));
 			
-			
-//			Map<PropertyIdentifier,Encodable> properties = RequestUtils.getProperties(localDevice, 
-//					remoteDevice, null, PropertyIdentifier.presentValue);
-//			List<ObjectIdentifier> oidList = new ArrayList();
-//			oidList.add(new ObjectIdentifier(ObjectType.analogOutput,6));
-//			oidList.add(new ObjectIdentifier(ObjectType.analogValue,4));
-//			oidList.add(new ObjectIdentifier(ObjectType.analogValue,3));
-//			oidList.add(new ObjectIdentifier(ObjectType.analogInput,3));
-//			oidList.add(new ObjectIdentifier(ObjectType.binaryValue,2));
-//			
-//			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, remoteDevice, oidList, null);
-//		
-			
-//			dt.writeDevice(d_freigabeAnlagen ,1, true);
+			Encodable test = dt.readDevice(new ObjectIdentifier(ObjectType.analogValue,4));
+			System.out.println(test.toString());
 
 			dt.writeDevice(d_freigabeAnlagen ,0, true);
 			dt.writeDevice(d_sollvertKalten ,50, false);
 			dt.writeDevice(d_sollwertHeizung ,10, false);
-			
 
 
-			
-//			
-//			dt.writeDevice(d_A03_FRG_Kalten ,1, true);
-//			dt.writeDevice(d_M05_VG ,100, false);
-//			
-//			dt.writeDevice(d_M04_VG ,50, false);
-//			
-//			
-//			Thread.sleep(10000);
-//			System.out.println("Heating off");
-//			dt.writeDevice(d_A03_FRG_Kalten ,0, true);
-			
-			
-			
 			
 		} finally {
 			dt.localDevice.terminate();
