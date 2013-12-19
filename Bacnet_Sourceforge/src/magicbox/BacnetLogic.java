@@ -39,19 +39,14 @@ import com.serotonin.bacnet4j.type.primitive.UnsignedInteger;
 import com.serotonin.bacnet4j.util.PropertyReferences;
 import com.serotonin.bacnet4j.util.PropertyValues;
 import com.serotonin.bacnet4j.util.RequestUtils;
-import com.serotonin.bacnet4j.test.LoopDevice;
+
 
 /**
- * Discovers and devices and print all properties of all objects found. this is
- * done by using PropertyIdentifier.all so the Device will send all propertys
- * that are set. if you want poll all PropertyId {@link ReadPropertyRangeTest}.
- * 
- * @author Matthew Lohbihler
- * @author Arne Pl�se
  */
+
 public class BacnetLogic {
 	public static String BROADCAST_ADDRESS = "128.130.56.255";
-	private LoopDevice loopDevice;
+
 	private final IpNetwork network;
 	private final LocalDevice localDevice;
 	// remote devices found
@@ -71,7 +66,7 @@ public class BacnetLogic {
 
 			@Override
 			public void iAmReceived(RemoteDevice d) {
-				System.out.println("DiscoveryTest iAmReceived");
+				// Find our device 2098177
 				if (d.getInstanceNumber() == 2098177) {
 					//remoteDevices.add(d);
 					remoteDevice = d;
@@ -168,84 +163,8 @@ public class BacnetLogic {
 			System.out.println(" waited for iAmReceived: "
 					+ (System.currentTimeMillis() - start) + " ms");
 		}
-
-		// An other way to get to the list of devices
-		// return localDevice.getRemoteDevices();
 	}
 
-	@SuppressWarnings("unchecked")
-	private void printDevices() throws BACnetException {
-
-			System.out.println("\n!!!!!!!!!!!!!!!!!!!!!!\n"+remoteDevice.getObjects().size()+"\n"+remoteDevice.toString()+"\n");
-			RequestUtils.getExtendedDeviceInformation(localDevice, remoteDevice);
-
-			List<ObjectIdentifier> oids = ((SequenceOf<ObjectIdentifier>) RequestUtils
-					.sendReadPropertyAllowNull(localDevice, remoteDevice,
-							remoteDevice.getObjectIdentifier(),
-							PropertyIdentifier.objectList)).getValues();
-
-			PropertyReferences refs = new PropertyReferences();
-			// add the property references of the "device object" to the list
-			refs.add(remoteDevice.getObjectIdentifier(), PropertyIdentifier.presentValue);
-			System.out.println(remoteDevice.getObjectIdentifier()+"\n\n");
-
-			// and now from all objects under the device object >> ai0,
-			// ai1,bi0,bi1...
-			for (ObjectIdentifier oid : oids) {
-				refs.add(oid, PropertyIdentifier.presentValue);
-			}
-
-			System.out.println("Start read properties");
-			final long start = System.currentTimeMillis();
-
-			// Read values from refs
-			
-			Map<PropertyIdentifier,Encodable> properties = RequestUtils.getProperties(localDevice, 
-					remoteDevice, null, PropertyIdentifier.presentValue);
-			List<ObjectIdentifier> oidList = new ArrayList();
-			oidList.add(new ObjectIdentifier(ObjectType.analogOutput,6));
-			oidList.add(new ObjectIdentifier(ObjectType.analogValue,4));
-			oidList.add(new ObjectIdentifier(ObjectType.analogValue,3));
-			oidList.add(new ObjectIdentifier(ObjectType.analogInput,3));
-			oidList.add(new ObjectIdentifier(ObjectType.binaryValue,2));
-			
-			PropertyValues propVal = RequestUtils.readOidPresentValues(localDevice, remoteDevice, oidList, null);
-			try {
-				Encodable prop =  propVal.get(oidList.get(4), PropertyIdentifier.presentValue);
-				System.out.println("AC: "+prop.toString());
-//				RequestUtils.sendReadPropertyAllowNull(localDevice, remoteDevice, 
-//						new ObjectIdentifier(ObjectType.analogValue,3), PropertyIdentifier.presentValue);
-				
-				Real value = new Real(30);
-				RequestUtils.setProperty(localDevice, remoteDevice,
-						new ObjectIdentifier(ObjectType.binaryValue,2), 
-						PropertyIdentifier.presentValue, new Enumerated(1));
-
-				RequestUtils.setProperty(localDevice, remoteDevice,
-						new ObjectIdentifier(ObjectType.analogValue,4), 
-						PropertyIdentifier.presentValue, value);				
-				
-				
-			} catch (PropertyValueException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			PropertyValues pvs = RequestUtils.readProperties(localDevice, remoteDevice,
-					refs, null);
-			System.out.println(String.format("Properties read done in %d ms",
-					System.currentTimeMillis() - start));
-			
-			//Print the read values
-			printObject(remoteDevice.getObjectIdentifier(), pvs);
-			for (ObjectIdentifier oid : oids) {
-				printObject(oid, pvs);
-			}
-
-
-		System.out.println("Remote devices done...");
-	}
-	
 	
 	private void writeDevice(ObjectIdentifier p_oid, int p_value, boolean p_bool) throws BACnetException {
 		if (p_bool == true) {
@@ -258,18 +177,15 @@ public class BacnetLogic {
 		}
 		System.out.println("Writing to devices done...");
 	}	
-		
-	private void printObject(ObjectIdentifier oid, PropertyValues pvs) {
-		System.out.println(String.format("\t%s", oid));
-		for (ObjectPropertyReference opr : pvs) {
-			if (oid.equals(opr.getObjectIdentifier())) {
-				System.out.println(String.format("\t\t%s = %s", opr
-						.getPropertyIdentifier().toString(), pvs
-						.getNoErrorCheck(opr)));
-			}
+	
+	@SuppressWarnings("unchecked")
+	private void readDevice(ObjectIdentifier p_oid) throws BACnetException {
 
-		}
+		System.out.println("ACHTUNG!-> "+RequestUtils.getProperty(localDevice, remoteDevice, p_oid, PropertyIdentifier.presentValue));
+		
+		System.out.println("Remote devices done...");
 	}
+
 
 	/**
 	 * Note same Broadcast address, but different ports!!!
@@ -289,7 +205,7 @@ public class BacnetLogic {
 		}
 		try {
 			dt.doDiscover();
-//			dt.printDevices();
+			dt.readDevice(new ObjectIdentifier(ObjectType.analogValue,4));
 			
 			
 //			Map<PropertyIdentifier,Encodable> properties = RequestUtils.getProperties(localDevice, 
@@ -314,18 +230,5 @@ public class BacnetLogic {
 		}
 	}
 
-	/**
-	 * @return the loopDevice
-	 */
-	public LoopDevice getLoopDevice() {
-		return loopDevice;
-	}
 
-	/**
-	 * @param loopDevice
-	 *            the loopDevice to set
-	 */
-	public void setLoopDevice(LoopDevice loopDevice) {
-		this.loopDevice = loopDevice;
-	}
 }
