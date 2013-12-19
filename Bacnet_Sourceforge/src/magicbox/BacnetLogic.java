@@ -2,14 +2,13 @@ package magicbox;
 
 import java.util.*;
 
-import org.omg.CORBA.FREE_MEM;
+
 
 import com.serotonin.bacnet4j.LocalDevice;
 import com.serotonin.bacnet4j.RemoteDevice;
 import com.serotonin.bacnet4j.RemoteObject;
 import com.serotonin.bacnet4j.event.DeviceEventListener;
 import com.serotonin.bacnet4j.exception.BACnetException;
-import com.serotonin.bacnet4j.exception.PropertyValueException;
 import com.serotonin.bacnet4j.npdu.ip.InetAddrCache;
 import com.serotonin.bacnet4j.npdu.ip.IpNetwork;
 import com.serotonin.bacnet4j.obj.BACnetObject;
@@ -21,7 +20,6 @@ import com.serotonin.bacnet4j.type.primitive.Real;
 import com.serotonin.bacnet4j.type.constructed.Address;
 import com.serotonin.bacnet4j.type.constructed.Choice;
 import com.serotonin.bacnet4j.type.constructed.DateTime;
-import com.serotonin.bacnet4j.type.constructed.ObjectPropertyReference;
 import com.serotonin.bacnet4j.type.constructed.PropertyValue;
 import com.serotonin.bacnet4j.type.constructed.SequenceOf;
 import com.serotonin.bacnet4j.type.constructed.TimeStamp;
@@ -36,10 +34,7 @@ import com.serotonin.bacnet4j.type.primitive.Boolean;
 import com.serotonin.bacnet4j.type.primitive.Enumerated;
 import com.serotonin.bacnet4j.type.primitive.CharacterString;
 import com.serotonin.bacnet4j.type.primitive.ObjectIdentifier;
-import com.serotonin.bacnet4j.type.primitive.Primitive;
 import com.serotonin.bacnet4j.type.primitive.UnsignedInteger;
-import com.serotonin.bacnet4j.util.PropertyReferences;
-import com.serotonin.bacnet4j.util.PropertyValues;
 import com.serotonin.bacnet4j.util.RequestUtils;
 
 
@@ -221,14 +216,12 @@ public class BacnetLogic {
 		try {
 			dt.doDiscover();
 			
-			Encodable test = dt.readDevice(new ObjectIdentifier(ObjectType.analogValue,4));
+			Encodable test = dt.readDevice(d_temperature);
 			System.out.println(test.toString());
 
-			dt.writeDevice(d_freigabeAnlagen ,0, true);
+			dt.writeDevice(d_freigabeAnlagen ,1, true);
 			dt.writeDevice(d_sollvertKalten ,50, false);
 			dt.writeDevice(d_sollwertHeizung ,10, false);
-
-
 			
 		} finally {
 			dt.localDevice.terminate();
