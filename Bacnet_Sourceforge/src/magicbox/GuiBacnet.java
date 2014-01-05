@@ -78,30 +78,31 @@ public class GuiBacnet implements ActionListener {
 
 		
 		//Actual Temp
-		lblActualTemperatures = new JLabel("Actual Temperature: %s");
+		lblActualTemperatures = new JLabel("Actual Temperature:");
 
 		//Empty Label
 		JLabel lblEmpty = new JLabel("");
 
 		
 		//Sollwert Heizung
-		lblSollwertHeizungs = new JLabel("Sollwert Heizung: %s");
+		lblSollwertHeizungs = new JLabel("Sollwert Heizung:");
 		
 		//FreigabeAnlage		
-		chckbxFreigabeAnlage = new JCheckBox("FreigabeAnlage");
+		chckbxFreigabeAnlage = new JCheckBox("Freigabe Anlage: ");
+		
 
-		textFieldH = new JTextField(1);
+		textFieldH = new JTextField("30", 1);
 	
 		//HeatingPump	
-		chckbxHeatingPump = new JCheckBox("HeatingPump");
+		chckbxHeatingPump = new JCheckBox("Heating Pumpt: ");
 		
 		//Sollwert Kuhlung
-		lblSollwertCooling = new JLabel("Sollwert Cooling: %s");
+		lblSollwertCooling = new JLabel("Sollwert Cooling: ");
 		
 		//CoolingPump	
-		chckbxCoolingPump = new JCheckBox("CoolingPump");
+		chckbxCoolingPump = new JCheckBox("Cooling Pump: ");
 
-		textFieldC = new JTextField(1);
+		textFieldC = new JTextField("20", 1);
 
 		btnExec = new JButton("Execute");
 		btnExec.addActionListener(this);
@@ -138,6 +139,15 @@ public class GuiBacnet implements ActionListener {
 				lblSollwertHeizungs.setText(system.readDevice(system.d_sollwertKalten).toString());
 				lblSollwertHeizungs.setText(system.readDevice(system.d_sollwertHeizung).toString());
 				lblActualTemperatures.setText(system.readDevice(system.d_temperature).toString());
+				
+				
+				chckbxFreigabeAnlage.setText("Freigabe Anlage: "+ 
+						system.readDevice(system.d_freigabeAnlagen).toString()=="1"?"on":"off");
+				chckbxHeatingPump.setText("Heating Pump: "+ 
+						system.readDevice(system.d_A06_FRG_Durchlauf).toString()=="1"?"on":"off");
+				chckbxCoolingPump.setText("Cooling Pump: "+ 
+						system.readDevice(system.d_A03_FRG_Kalten).toString()=="1"?"on":"off");
+				
 			} catch (BACnetException e) {
 				e.printStackTrace();
 			}
@@ -152,7 +162,7 @@ public class GuiBacnet implements ActionListener {
 				system.writeDevice(system.d_A03_FRG_Kalten ,chckbxCoolingPump.isSelected());
 				system.writeDevice(system.d_A06_FRG_Durchlauf ,chckbxHeatingPump.isSelected());
 				system.writeDevice(system.d_freigabeAnlagen ,chckbxFreigabeAnlage.isSelected());
-			
+				
 			} catch (BACnetException e) {
 				e.printStackTrace();
 			}
