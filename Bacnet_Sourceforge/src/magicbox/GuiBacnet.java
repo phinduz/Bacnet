@@ -15,6 +15,8 @@ import javax.swing.JSlider;
 import javax.swing.JButton;
 import javax.swing.Timer;
 
+import com.serotonin.bacnet4j.exception.BACnetException;
+
 public class GuiBacnet implements ActionListener {
 	
 	private JFrame frame;
@@ -36,6 +38,7 @@ public class GuiBacnet implements ActionListener {
 	
 	private int tempFahr = 0;
 	
+	private BacnetLogic system;
 	
 	/**
 	 * Launch the application.
@@ -116,6 +119,14 @@ public class GuiBacnet implements ActionListener {
 		frame.getContentPane().add(textFieldC);
 		frame.getContentPane().add(btnExec);
 		
+		
+		try {
+			system = new BacnetLogic();
+			system.doDiscover();
+		} catch (Exception e) {
+			system.terminate();
+		}
+		
 	}
 	
 	
@@ -123,19 +134,28 @@ public class GuiBacnet implements ActionListener {
 	public void actionPerformed(ActionEvent event) {
 		
 		if (event.getSource() == timer) {
-			System.out.println("Timer stuff");
+			try {
+				lblSollwertHeizungs.setText(system.readDevice(system.d_sollwertKalten).toString());
+				lblSollwertHeizungs.setText(system.readDevice(system.d_sollwertHeizung).toString());
+				lblActualTemperatures.setText(system.readDevice(system.d_temperature).toString());
+			} catch (BACnetException e) {
+				e.printStackTrace();
+			}
 			
-			lblSollwertHeizungs.setText("Sollwert Heizung: " + tempFahr);
-			lblSollwertCooling.setText("Sollwert Cooling: " + tempFahr);
-			lblActualTemperatures.setText("Actual Temperature: " + tempFahr);
-			
-			tempFahr ++;
 		}
 		else if (event.getSource() == btnExec) {
 			
 			System.out.println("Excecute");
 			System.out.println(chckbxCoolingPump.isSelected());
 			
+			try {
+				system.writeDevice(system.d_A03_FRG_Kalten ,chckbxCoolingPump.isSelected());
+				system.writeDevice(system.d_A06_FRG_Durchlauf ,chckbxHeatingPump.isSelected());
+				system.writeDevice(system.d_freigabeAnlagen ,chckbxFreigabeAnlage.isSelected());
+			
+			} catch (BACnetException e) {
+				e.printStackTrace();
+			}
 		}
 		/*			
         int tempFahr = (int)((Double.parseDouble(textFieldH.getText())));

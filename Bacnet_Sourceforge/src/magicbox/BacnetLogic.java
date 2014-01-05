@@ -49,27 +49,27 @@ public class BacnetLogic {
 	// remote devices found
 	public RemoteDevice remoteDevice;
 	
-	private static ObjectIdentifier d_freigabeAnlagen = new ObjectIdentifier(ObjectType.binaryValue,2);
+	public ObjectIdentifier d_freigabeAnlagen = new ObjectIdentifier(ObjectType.binaryValue,2);
 
-	private static ObjectIdentifier d_sollwertHeizung= new ObjectIdentifier(ObjectType.analogValue,3);
-	private static ObjectIdentifier d_sollvertKalten = new ObjectIdentifier(ObjectType.analogValue,4);
+	public ObjectIdentifier d_sollwertHeizung= new ObjectIdentifier(ObjectType.analogValue,3);
+	public ObjectIdentifier d_sollwertKalten = new ObjectIdentifier(ObjectType.analogValue,4);
 	
-	private static ObjectIdentifier d_Stellen_Klappenantriebe = new ObjectIdentifier(ObjectType.analogOutput,6);
-	private static ObjectIdentifier d_M03_VG = new ObjectIdentifier(ObjectType.analogOutput,7);
-	private static ObjectIdentifier d_M05_VG = new ObjectIdentifier(ObjectType.analogOutput,8);
-	private static ObjectIdentifier d_M02_VG = new ObjectIdentifier(ObjectType.analogOutput,9);
-	private static ObjectIdentifier d_M04_VG = new ObjectIdentifier(ObjectType.analogOutput,10);
+	public ObjectIdentifier d_Stellen_Klappenantriebe = new ObjectIdentifier(ObjectType.analogOutput,6);
+	public ObjectIdentifier d_M03_VG = new ObjectIdentifier(ObjectType.analogOutput,7);
+	public ObjectIdentifier d_M05_VG = new ObjectIdentifier(ObjectType.analogOutput,8);
+	public ObjectIdentifier d_M02_VG = new ObjectIdentifier(ObjectType.analogOutput,9);
+	public ObjectIdentifier d_M04_VG = new ObjectIdentifier(ObjectType.analogOutput,10);
 	
-	private static ObjectIdentifier d_temperature = new ObjectIdentifier(ObjectType.analogInput,3);
+	public ObjectIdentifier d_temperature = new ObjectIdentifier(ObjectType.analogInput,3);
 	
-	private static ObjectIdentifier d_A06_FRG_Durchlauf = new ObjectIdentifier(ObjectType.binaryOutput,8);
-	private static ObjectIdentifier d_A03_FRG_Kalten = new ObjectIdentifier(ObjectType.binaryOutput,9);
+	public ObjectIdentifier d_A06_FRG_Durchlauf = new ObjectIdentifier(ObjectType.binaryOutput,8);
+	public ObjectIdentifier d_A03_FRG_Kalten = new ObjectIdentifier(ObjectType.binaryOutput,9);
 	
 
 	
-	public BacnetLogic(String broadcastAddress, int port)
+	public BacnetLogic()
 			throws Exception {
-		network = new IpNetwork(broadcastAddress, port);
+		network = new IpNetwork(BROADCAST_ADDRESS, IpNetwork.DEFAULT_PORT);
 		localDevice = new LocalDevice(2323, new Transport(network));
 		localDevice.getEventHandler().addListener(new DeviceEventListener() {
 
@@ -179,33 +179,34 @@ public class BacnetLogic {
 		}
 	}
 
-	private void writeDevice(ObjectIdentifier p_oid, int p_value, boolean p_bool) throws BACnetException {
-		if (p_bool == true) {
-			RequestUtils.setProperty(localDevice, remoteDevice, p_oid, 
-					PropertyIdentifier.presentValue, new Enumerated(p_value));
-		}
-		else {
-			RequestUtils.setProperty(localDevice, remoteDevice, p_oid,	
-					PropertyIdentifier.presentValue, new Real(p_value));				
-		}
+	public void writeDevice(ObjectIdentifier p_oid, int p_value) throws BACnetException {
+		RequestUtils.setProperty(localDevice, remoteDevice, p_oid,	
+				PropertyIdentifier.presentValue, new Real(p_value));
+		
+		System.out.println("Writing to devices done...");
+	}	
+	
+	public void writeDevice(ObjectIdentifier p_oid, boolean p_value) throws BACnetException {
+		int val = p_value? 1 : 0;
+		RequestUtils.setProperty(localDevice, remoteDevice, p_oid, 
+				PropertyIdentifier.presentValue, new Enumerated(val));
+		
 		System.out.println("Writing to devices done...");
 	}	
 	
 	@SuppressWarnings("unchecked")
-	private Encodable readDevice(ObjectIdentifier p_oid) throws BACnetException {
+	public Encodable readDevice(ObjectIdentifier p_oid) throws BACnetException {
 		return RequestUtils.getProperty(localDevice, remoteDevice, p_oid, PropertyIdentifier.presentValue);
+	}
+	
+	public void terminate(){
+		localDevice.terminate();
 	}
 
 
 	/**
-	 * Note same Broadcast address, but different ports!!!
-	 * 
-	 * @param args
-	 * @throws java.lang.Exception
-	 */
 	public static void main(String[] args) throws Exception {
-		BacnetLogic dt = new BacnetLogic(
-				BROADCAST_ADDRESS, IpNetwork.DEFAULT_PORT);
+		BacnetLogic dt = new BacnetLogic();
 		try {
 			// dt.setLoopDevice(new LoopDevice(BROADCAST_ADDRESS,
 			// IpNetwork.DEFAULT_PORT + 1));
@@ -229,6 +230,7 @@ public class BacnetLogic {
 			// dt.getLoopDevice().doTerminate();
 		}
 	}
+	*/
 
 
 }
