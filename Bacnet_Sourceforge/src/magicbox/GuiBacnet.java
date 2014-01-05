@@ -91,7 +91,7 @@ public class GuiBacnet implements ActionListener {
 		chckbxFreigabeAnlage = new JCheckBox("Freigabe Anlage: ");
 		
 
-		textFieldH = new JTextField("30", 1);
+		textFieldH = new JTextField("20", 1);
 	
 		//HeatingPump	
 		chckbxHeatingPump = new JCheckBox("Heating Pumpt: ");
@@ -102,7 +102,7 @@ public class GuiBacnet implements ActionListener {
 		//CoolingPump	
 		chckbxCoolingPump = new JCheckBox("Cooling Pump: ");
 
-		textFieldC = new JTextField("20", 1);
+		textFieldC = new JTextField("30", 1);
 
 		btnExec = new JButton("Execute");
 		btnExec.addActionListener(this);
@@ -163,17 +163,34 @@ public class GuiBacnet implements ActionListener {
 				system.writeDevice(system.d_A06_FRG_Durchlauf ,chckbxHeatingPump.isSelected());
 				system.writeDevice(system.d_freigabeAnlagen ,chckbxFreigabeAnlage.isSelected());
 				
+				if (!textFieldH.getText().isEmpty() && isNumeric(textFieldH.getText())) {
+
+					system.writeDevice(system.d_sollwertHeizung, (int)((Double.parseDouble(textFieldH.getText()))));
+				}
+				if (!textFieldH.getText().isEmpty() && isNumeric(textFieldH.getText())) {
+
+					system.writeDevice(system.d_sollwertKalten, (int)((Double.parseDouble(textFieldC.getText()))));
+				}
+				
 			} catch (BACnetException e) {
 				e.printStackTrace();
 			}
 		}
-		/*			
-        int tempFahr = (int)((Double.parseDouble(textFieldH.getText())));
-
-        lblSollwertHeizungs.setText("Sollwert Heizung: " + tempFahr);
-        */
     }
 	
-	
+	public static boolean isNumeric(String str)  
+	{  
+	  try  
+	  {  
+	    double d = Double.parseDouble(str);  
+	  }  
+	  catch(NumberFormatException nfe)  
+	  {  
+	    return false;  
+	  }  
+	  return true;  
+	}
 	
 }
+
+
