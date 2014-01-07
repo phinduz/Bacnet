@@ -46,27 +46,20 @@ public class BacnetLogic {
 
 	private final IpNetwork network;
 	private final LocalDevice localDevice;
-	// remote devices found
 	public RemoteDevice remoteDevice;
 	
 	public ObjectIdentifier d_freigabeAnlagen = new ObjectIdentifier(ObjectType.binaryValue,2);
-
 	public ObjectIdentifier d_sollwertHeizung= new ObjectIdentifier(ObjectType.analogValue,3);
 	public ObjectIdentifier d_sollwertKalten = new ObjectIdentifier(ObjectType.analogValue,4);
-	
 	public ObjectIdentifier d_Stellen_Klappenantriebe = new ObjectIdentifier(ObjectType.analogOutput,6);
 	public ObjectIdentifier d_M03_VG = new ObjectIdentifier(ObjectType.analogOutput,7);
 	public ObjectIdentifier d_M05_VG = new ObjectIdentifier(ObjectType.analogOutput,8);
 	public ObjectIdentifier d_M02_VG = new ObjectIdentifier(ObjectType.analogOutput,9);
 	public ObjectIdentifier d_M04_VG = new ObjectIdentifier(ObjectType.analogOutput,10);
-	
 	public ObjectIdentifier d_temperature = new ObjectIdentifier(ObjectType.analogInput,3);
-	
 	public ObjectIdentifier d_A06_FRG_Durchlauf = new ObjectIdentifier(ObjectType.binaryOutput,8);
 	public ObjectIdentifier d_A03_FRG_Kalten = new ObjectIdentifier(ObjectType.binaryOutput,9);
-	
-
-	
+		
 	public BacnetLogic()
 			throws Exception {
 		network = new IpNetwork(BROADCAST_ADDRESS, IpNetwork.DEFAULT_PORT);
@@ -82,7 +75,6 @@ public class BacnetLogic {
 			public void iAmReceived(RemoteDevice d) {
 				// Find our device 2098177
 				if (d.getInstanceNumber() == 2098177) {
-					//remoteDevices.add(d);
 					remoteDevice = d;
 					synchronized (BacnetLogic.this) {
 						BacnetLogic.this.notifyAll();
@@ -173,7 +165,7 @@ public class BacnetLogic {
 		// wait for notification in iAmReceived() Timeout 2 sec
 		synchronized (this) {
 			final long start = System.currentTimeMillis();
-			this.wait(3000);
+			this.wait(2000);
 			System.out.println(" waited for iAmReceived: "
 					+ (System.currentTimeMillis() - start) + " ms");
 		}
@@ -201,36 +193,6 @@ public class BacnetLogic {
 	
 	public void terminate(){
 		localDevice.terminate();
+		
 	}
-
-
-	/**
-	public static void main(String[] args) throws Exception {
-		BacnetLogic dt = new BacnetLogic();
-		try {
-			// dt.setLoopDevice(new LoopDevice(BROADCAST_ADDRESS,
-			// IpNetwork.DEFAULT_PORT + 1));
-		} catch (RuntimeException e) {
-			dt.localDevice.terminate();
-			throw e;
-		}
-		try {
-			dt.doDiscover();
-			
-			Encodable test = dt.readDevice(d_temperature);
-			System.out.println(test.toString());
-
-			dt.writeDevice(d_freigabeAnlagen ,1, true);
-			dt.writeDevice(d_sollvertKalten ,50, false);
-			dt.writeDevice(d_sollwertHeizung ,10, false);
-			
-		} finally {
-			dt.localDevice.terminate();
-			System.out.println("Cleanup loopDevice");
-			// dt.getLoopDevice().doTerminate();
-		}
-	}
-	*/
-
-
 }

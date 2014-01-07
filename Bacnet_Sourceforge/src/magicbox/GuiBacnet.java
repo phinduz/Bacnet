@@ -21,23 +21,11 @@ import com.serotonin.bacnet4j.exception.BACnetException;
 public class GuiBacnet implements ActionListener {
 
 	private JFrame frame;
-	private JTextField newSollH;
-	private JTextField newSollC;
 	private JTextField textFieldH, textFieldC, textFieldVentilation;
 	private JButton btnExec;
-	private JLabel lblSollwertHeizungs;
-	private JLabel lblSollwertCooling;
-	private JLabel lblActualTemperatures;
-	private JLabel lblVentilation;
-
-	private JCheckBox chckbxFreigabeAnlage;
-	private JCheckBox chckbxHeatingPump;
-	private JCheckBox chckbxCoolingPump;
-	private JCheckBox chckbxManualMode;
-
+	private JLabel lblSollwertHeizungs, lblSollwertCooling, lblActualTemperatures, lblVentilation;
+	private JCheckBox chckbxFreigabeAnlage, chckbxHeatingPump, chckbxCoolingPump, chckbxManualMode;
 	private Timer timer;
-
-	private int tempFahr = 0;
 
 	private BacnetLogic system;
 
@@ -72,52 +60,26 @@ public class GuiBacnet implements ActionListener {
 		timer = new Timer(1000, this);
 		timer.start();
 
-		// frame.setBounds(100, 100, 450, 300);
-
 		frame.setMinimumSize(new Dimension(450, 300));
-
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new GridLayout(6, 3));
 
-		// Actual Temp
+		// Creating interface
 		lblActualTemperatures = new JLabel("Actual Temperature: ");
-
-		// Ventilation
 		lblVentilation = new JLabel("Ventilation: ");
-		
-		// Empty Label
-		JLabel lblEmpty = new JLabel("");
-
-		// Sollwert Heizung
 		lblSollwertHeizungs = new JLabel("Sollwert Heizung:");
-
-		// FreigabeAnlage
 		chckbxFreigabeAnlage = new JCheckBox("Freigabe Anlage: ");
-		
-		//
 		textFieldH = new JTextField("20", 1);
-
-		//
 		textFieldVentilation = new JTextField("100", 1);
-		
-		// Manual mode
 		chckbxManualMode = new JCheckBox("Manual Mode: off");
-
-		// HeatingPump
 		chckbxHeatingPump = new JCheckBox("Heating Pump: ");
-
-		// Sollwert Kuhlung
 		lblSollwertCooling = new JLabel("Sollwert Cooling: ");
-
-		// CoolingPump
 		chckbxCoolingPump = new JCheckBox("Cooling Pump: ");
-
 		textFieldC = new JTextField("30", 1);
-
 		btnExec = new JButton("Execute");
 		btnExec.addActionListener(this);
 
-		// Add everything to <gridlayout
+		// Add everything to gridlayout
 		frame.getContentPane().add(lblVentilation);
 		frame.getContentPane().add(chckbxManualMode);
 		frame.getContentPane().add(textFieldVentilation);
@@ -131,10 +93,12 @@ public class GuiBacnet implements ActionListener {
 		frame.getContentPane().add(textFieldC);
 		frame.getContentPane().add(btnExec);
 
+		//Starts in automated mode -> hide manual mode buttons
 		chckbxHeatingPump.setEnabled(false);
 		chckbxCoolingPump.setEnabled(false);
 		textFieldVentilation.setEnabled(false);
 		
+		// Start communication with Bacnet
 		try {
 			system = new BacnetLogic();
 			system.doDiscover();
@@ -145,14 +109,14 @@ public class GuiBacnet implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent event) {
-
+		
+		// Polling data from Bacnet
 		if (event.getSource() == timer) {
 			try {
 				lblVentilation
 				.setText("Ventilation: "
 						+ system.readDevice(system.d_M04_VG)
-								.toString());
-				
+								.toString());	
 				lblSollwertCooling
 						.setText("Sollwert Cooling: "
 								+ system.readDevice(system.d_sollwertKalten)
@@ -162,7 +126,6 @@ public class GuiBacnet implements ActionListener {
 								.toString());
 				lblActualTemperatures.setText("Actual temperature: "
 						+ system.readDevice(system.d_temperature).toString());
-
 				chckbxFreigabeAnlage.setText("Freigabe Anlage: "
 						+ (system.readDevice(system.d_freigabeAnlagen)
 								.toString().equals("1") ? "on" : "off"));
@@ -176,14 +139,12 @@ public class GuiBacnet implements ActionListener {
 			} catch (BACnetException e) {
 				e.printStackTrace();
 			}
-
+		
+		// When execute button is pressed values are sent	
 		} else if (event.getSource() == btnExec) {
 
 			try {
-				system.writeDevice(system.d_freigabeAnlagen,
-						chckbxFreigabeAnlage.isSelected());
-				chckbxManualMode.setText("Manual Mode: "
-						+ (chckbxManualMode.isSelected()? "on" : "off"));
+				// Manual mode
 				if (chckbxManualMode.isSelected()) {
 					textFieldVentilation.setEnabled(true);
 					chckbxCoolingPump.setEnabled(true);
@@ -223,7 +184,7 @@ public class GuiBacnet implements ActionListener {
 						system.writeDevice(system.d_M03_VG, 0);
 					}
 
-					
+				// Automatic mode	
 				} else {
 					textFieldVentilation.setEnabled(false);
 					textFieldC.setEnabled(true);
@@ -246,12 +207,17 @@ public class GuiBacnet implements ActionListener {
 								(int) ((Double.parseDouble(textFieldC.getText()))));
 					}
 				}
+				system.writeDevice(system.d_freigabeAnlagen,
+						chckbxFreigabeAnlage.isSelected());
+				chckbxManualMode.setText("Manual Mode: "
+						+ (chckbxManualMode.isSelected()? "on" : "off"));
 			} catch (BACnetException e1) {
 				e1.printStackTrace();
 			}
 		}
 	}
 
+	// Check whether String is a number
 	public static boolean isNumeric(String str) {
 		try {
 			double d = Double.parseDouble(str);
