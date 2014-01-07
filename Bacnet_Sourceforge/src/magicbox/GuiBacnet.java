@@ -23,11 +23,12 @@ public class GuiBacnet implements ActionListener {
 	private JFrame frame;
 	private JTextField newSollH;
 	private JTextField newSollC;
-	private JTextField textFieldH, textFieldC;
+	private JTextField textFieldH, textFieldC, textFieldVentilation;
 	private JButton btnExec;
 	private JLabel lblSollwertHeizungs;
 	private JLabel lblSollwertCooling;
 	private JLabel lblActualTemperatures;
+	private JLabel lblVentilation;
 
 	private JCheckBox chckbxFreigabeAnlage;
 	private JCheckBox chckbxHeatingPump;
@@ -76,11 +77,14 @@ public class GuiBacnet implements ActionListener {
 		frame.setMinimumSize(new Dimension(450, 300));
 
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(new GridLayout(5, 3));
+		frame.getContentPane().setLayout(new GridLayout(6, 3));
 
 		// Actual Temp
-		lblActualTemperatures = new JLabel("Actual Temperature:");
+		lblActualTemperatures = new JLabel("Actual Temperature: ");
 
+		// Ventilation
+		lblVentilation = new JLabel("Ventilation: ");
+		
 		// Empty Label
 		JLabel lblEmpty = new JLabel("");
 
@@ -89,9 +93,13 @@ public class GuiBacnet implements ActionListener {
 
 		// FreigabeAnlage
 		chckbxFreigabeAnlage = new JCheckBox("Freigabe Anlage: ");
-
+		
+		//
 		textFieldH = new JTextField("20", 1);
 
+		//
+		textFieldVentilation = new JTextField("100", 1);
+		
 		// Manual mode
 		chckbxManualMode = new JCheckBox("Manual Mode: off");
 
@@ -110,19 +118,22 @@ public class GuiBacnet implements ActionListener {
 		btnExec.addActionListener(this);
 
 		// Add everything to <gridlayout
-		frame.getContentPane().add(lblActualTemperatures);
+		frame.getContentPane().add(lblVentilation);
 		frame.getContentPane().add(chckbxManualMode);
-		frame.getContentPane().add(lblSollwertHeizungs);
+		frame.getContentPane().add(textFieldVentilation);
 		frame.getContentPane().add(chckbxFreigabeAnlage);
-		frame.getContentPane().add(textFieldH);
+		frame.getContentPane().add(lblSollwertHeizungs);
 		frame.getContentPane().add(chckbxHeatingPump);
-		frame.getContentPane().add(lblSollwertCooling);
+		frame.getContentPane().add(textFieldH);
 		frame.getContentPane().add(chckbxCoolingPump);
+		frame.getContentPane().add(lblSollwertCooling);
+		frame.getContentPane().add(lblActualTemperatures);
 		frame.getContentPane().add(textFieldC);
 		frame.getContentPane().add(btnExec);
 
 		chckbxHeatingPump.setEnabled(false);
 		chckbxCoolingPump.setEnabled(false);
+		textFieldVentilation.setEnabled(false);
 		
 		try {
 			system = new BacnetLogic();
@@ -137,6 +148,11 @@ public class GuiBacnet implements ActionListener {
 
 		if (event.getSource() == timer) {
 			try {
+				lblVentilation
+				.setText("Ventilation: "
+						+ system.readDevice(system.d_M04_VG)
+								.toString());
+				
 				lblSollwertCooling
 						.setText("Sollwert Cooling: "
 								+ system.readDevice(system.d_sollwertKalten)
@@ -169,7 +185,7 @@ public class GuiBacnet implements ActionListener {
 				chckbxManualMode.setText("Manual Mode: "
 						+ (chckbxManualMode.isSelected()? "on" : "off"));
 				if (chckbxManualMode.isSelected()) {
-
+					textFieldVentilation.setEnabled(true);
 					chckbxCoolingPump.setEnabled(true);
 					chckbxHeatingPump.setEnabled(true);
 					textFieldC.setEnabled(false);
@@ -179,28 +195,37 @@ public class GuiBacnet implements ActionListener {
 					system.writeDevice(system.d_A06_FRG_Durchlauf,
 							chckbxHeatingPump.isSelected());
 					
+
+					if (!textFieldVentilation.getText().isEmpty()
+							&& isNumeric(textFieldVentilation.getText())) {
+
+						int ventSpeed = (int) ((Double.parseDouble(textFieldVentilation.getText())));
+						ventSpeed=ventSpeed<0 ? 0:ventSpeed;
+						ventSpeed=ventSpeed>100 ? 100:ventSpeed;
+						
+						system.writeDevice(system.d_M04_VG, 
+								ventSpeed);
+						system.writeDevice(system.d_M05_VG, 
+								ventSpeed);
+						
+					}
+					
 					if (chckbxCoolingPump.isSelected()){
 						system.writeDevice(system.d_M02_VG, 100);
-						system.writeDevice(system.d_M04_VG, 100);
-						system.writeDevice(system.d_M05_VG, 100);
 					}
 					else {
 						system.writeDevice(system.d_M02_VG, 0);
 					}
 					if (chckbxHeatingPump.isSelected()){
 						system.writeDevice(system.d_M03_VG, 100);
-						system.writeDevice(system.d_M04_VG, 100);
-						system.writeDevice(system.d_M05_VG, 100);
 					}
 					else {
 						system.writeDevice(system.d_M03_VG, 0);
 					}
-					if (chckbxCoolingPump.isSelected() && chckbxCoolingPump.isSelected()){
-						system.writeDevice(system.d_M04_VG, 0);
-						system.writeDevice(system.d_M05_VG, 0);
-					}
+
 					
 				} else {
+					textFieldVentilation.setEnabled(false);
 					textFieldC.setEnabled(true);
 					textFieldH.setEnabled(true);
 					chckbxCoolingPump.setEnabled(false);
